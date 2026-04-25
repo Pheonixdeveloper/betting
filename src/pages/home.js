@@ -1,0 +1,282 @@
+// Home Page
+
+export class HomePage {
+  constructor(container, app) {
+    this.container = container;
+    this.app = app;
+    this.render();
+  }
+
+  render() {
+    this.container.innerHTML = `
+      <!-- Hero Section -->
+      <section class="hero-section">
+        <div class="hero-bg-pattern"></div>
+        <div class="hero-particles" id="hero-particles"></div>
+        <div class="hero-content">
+          <div class="hero-badge"><i class="fas fa-crown"></i> Premium Gaming Platform</div>
+          <h1 class="hero-title">Play. Win. Withdraw Instantly.</h1>
+          <p class="hero-subtitle">Experience the thrill of Dragon Tiger, Teen Patti, Aviator, Color Game & Roulette. Real games, real wins, instant payouts.</p>
+          <div class="hero-buttons">
+            <button class="btn btn-game btn-lg" id="hero-play-now"><i class="fas fa-play"></i> Play Now</button>
+            <button class="btn btn-outline btn-lg" id="hero-signup"><i class="fas fa-gift"></i> Get ₹1,000 Bonus</button>
+          </div>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-value">50K+</div>
+            <div class="hero-stat-label">Active Players</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-value">₹2Cr+</div>
+            <div class="hero-stat-label">Won Today</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-value">99.9%</div>
+            <div class="hero-stat-label">Uptime</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Marquee -->
+      <div class="marquee-bar">
+        <div class="marquee-content" id="marquee-content">
+          <span class="marquee-item"><i class="fas fa-trophy"></i> Ravi won ₹45,000 in Aviator!</span>
+          <span class="marquee-item"><i class="fas fa-star"></i> Priya won ₹12,500 in Dragon Tiger!</span>
+          <span class="marquee-item"><i class="fas fa-gem"></i> Amit won ₹78,000 in Teen Patti!</span>
+          <span class="marquee-item"><i class="fas fa-fire"></i> Sneha won ₹22,000 in Color Game!</span>
+          <span class="marquee-item"><i class="fas fa-crown"></i> Raj won ₹55,000 in Roulette!</span>
+          <span class="marquee-item"><i class="fas fa-bolt"></i> VIP Bonus: Get 200% on first deposit!</span>
+          <span class="marquee-item"><i class="fas fa-trophy"></i> Ravi won ₹45,000 in Aviator!</span>
+          <span class="marquee-item"><i class="fas fa-star"></i> Priya won ₹12,500 in Dragon Tiger!</span>
+          <span class="marquee-item"><i class="fas fa-gem"></i> Amit won ₹78,000 in Teen Patti!</span>
+          <span class="marquee-item"><i class="fas fa-fire"></i> Sneha won ₹22,000 in Color Game!</span>
+          <span class="marquee-item"><i class="fas fa-crown"></i> Raj won ₹55,000 in Roulette!</span>
+          <span class="marquee-item"><i class="fas fa-bolt"></i> VIP Bonus: Get 200% on first deposit!</span>
+        </div>
+      </div>
+
+      <!-- Category Icons -->
+      <div class="category-icons">
+        <div class="category-icon" data-game="dragon-tiger">
+          <div class="category-icon-img">🐉</div>
+          <span>Dragon Tiger</span>
+        </div>
+        <div class="category-icon" data-game="teen-patti">
+          <div class="category-icon-img">🃏</div>
+          <span>Teen Patti</span>
+        </div>
+        <div class="category-icon" data-game="aviator">
+          <div class="category-icon-img">✈️</div>
+          <span>Aviator</span>
+        </div>
+        <div class="category-icon" data-game="color-game">
+          <div class="category-icon-img">🎨</div>
+          <span>Color Game</span>
+        </div>
+        <div class="category-icon" data-game="roulette">
+          <div class="category-icon-img">🎰</div>
+          <span>Roulette</span>
+        </div>
+      </div>
+
+      <!-- Popular Games -->
+      <div class="section-header">
+        <h2 class="section-title"><i class="fas fa-fire"></i> Popular Games</h2>
+        <a href="#" class="section-link" data-page="casino">View All <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <div class="games-grid" id="games-grid">
+        ${this.renderGameCards()}
+      </div>
+
+      <!-- Promotions -->
+      <div class="section-header">
+        <h2 class="section-title"><i class="fas fa-gift"></i> Promotions</h2>
+      </div>
+      <div class="promo-grid">
+        <div class="promo-card promo-bonus">
+          <div class="promo-card-icon"><i class="fas fa-gift"></i></div>
+          <h3>Welcome Bonus</h3>
+          <p>Get ₹1,000 instantly on signup! Start playing your favorite games right away with free credits.</p>
+        </div>
+        <div class="promo-card promo-vip">
+          <div class="promo-card-icon"><i class="fas fa-crown"></i></div>
+          <h3>VIP Program</h3>
+          <p>Earn loyalty points on every bet. Unlock exclusive rewards, higher limits, and priority withdrawals.</p>
+        </div>
+        <div class="promo-card promo-cashback">
+          <div class="promo-card-icon"><i class="fas fa-undo"></i></div>
+          <h3>Daily Cashback</h3>
+          <p>Get 5% cashback on net losses every day. Your money works harder with our cashback guarantee.</p>
+        </div>
+      </div>
+
+      <!-- Live Winners -->
+      <div class="section-header">
+        <h2 class="section-title"><i class="fas fa-trophy"></i> Recent Winners</h2>
+      </div>
+      <div class="game-history">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>Game</th>
+              <th>Bet</th>
+              <th>Win</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="live-winners-body">
+            ${this.renderLiveWinners()}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    this.setupEvents();
+    this.createParticles();
+  }
+
+  renderGameCards() {
+    const games = [
+      {
+        id: 'dragon-tiger',
+        title: 'Dragon Tiger',
+        provider: 'EARN10X Live',
+        players: Math.floor(Math.random() * 500) + 200,
+        emoji: '🐉',
+        gradient: 'linear-gradient(135deg, #dc2626 0%, #1e40af 100%)',
+        badge: 'LIVE'
+      },
+      {
+        id: 'teen-patti',
+        title: 'Teen Patti',
+        provider: 'EARN10X Cards',
+        players: Math.floor(Math.random() * 400) + 150,
+        emoji: '🃏',
+        gradient: 'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)',
+        badge: 'HOT'
+      },
+      {
+        id: 'aviator',
+        title: 'Aviator',
+        provider: 'EARN10X Crash',
+        players: Math.floor(Math.random() * 800) + 400,
+        emoji: '✈️',
+        gradient: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #dc2626 100%)',
+        badge: 'POPULAR'
+      },
+      {
+        id: 'color-game',
+        title: 'Color Game',
+        provider: 'EARN10X Colors',
+        players: Math.floor(Math.random() * 300) + 100,
+        emoji: '🎨',
+        gradient: 'linear-gradient(135deg, #22c55e 0%, #3b82f6 50%, #ef4444 100%)',
+        badge: 'NEW'
+      },
+      {
+        id: 'roulette',
+        title: 'Roulette',
+        provider: 'EARN10X Table',
+        players: Math.floor(Math.random() * 350) + 200,
+        emoji: '🎰',
+        gradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+        badge: 'CLASSIC'
+      }
+    ];
+
+    return games.map(game => `
+      <div class="game-card" data-game="${game.id}">
+        <div class="game-card-image" style="background: ${game.gradient}; display: flex; align-items: center; justify-content: center;">
+          <span style="font-size: 4rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">${game.emoji}</span>
+          <span class="game-card-badge live">${game.badge}</span>
+          <div class="game-card-overlay">
+            <div class="game-card-play"><i class="fas fa-play"></i></div>
+          </div>
+        </div>
+        <div class="game-card-info">
+          <div class="game-card-title">${game.title}</div>
+          <div class="game-card-provider">${game.provider}</div>
+          <div class="game-card-players"><i class="fas fa-users"></i> ${game.players} playing now</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  renderLiveWinners() {
+    const names = ['Ravi K.', 'Priya M.', 'Amit S.', 'Sneha R.', 'Raj P.', 'Neha G.', 'Vikram T.', 'Anita B.'];
+    const games = ['Dragon Tiger', 'Teen Patti', 'Aviator', 'Color Game', 'Roulette'];
+    
+    return Array.from({length: 8}, (_, i) => {
+      const bet = Math.floor(Math.random() * 5000) + 500;
+      const multiplier = (Math.random() * 5 + 1).toFixed(1);
+      const win = Math.floor(bet * multiplier);
+      const mins = Math.floor(Math.random() * 30) + 1;
+      return `
+        <tr>
+          <td><strong>${names[i]}</strong></td>
+          <td>${games[Math.floor(Math.random() * games.length)]}</td>
+          <td>₹${bet.toLocaleString()}</td>
+          <td style="color: var(--success); font-weight: 700;">₹${win.toLocaleString()}</td>
+          <td>${mins}m ago</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  createParticles() {
+    const container = document.getElementById('hero-particles');
+    if (!container) return;
+    for (let i = 0; i < 20; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'hero-particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.top = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 5 + 's';
+      particle.style.animationDuration = (5 + Math.random() * 5) + 's';
+      container.appendChild(particle);
+    }
+  }
+
+  setupEvents() {
+    // Game cards
+    this.container.querySelectorAll('.game-card').forEach(card => {
+      card.addEventListener('click', () => {
+        this.app.navigateTo(card.dataset.game);
+      });
+    });
+
+    // Category icons
+    this.container.querySelectorAll('.category-icon').forEach(icon => {
+      icon.addEventListener('click', () => {
+        this.app.navigateTo(icon.dataset.game);
+      });
+    });
+
+    // Hero buttons
+    const playNow = this.container.querySelector('#hero-play-now');
+    if (playNow) {
+      playNow.addEventListener('click', () => this.app.navigateTo('casino'));
+    }
+
+    const heroSignup = this.container.querySelector('#hero-signup');
+    if (heroSignup) {
+      heroSignup.addEventListener('click', () => {
+        if (this.app.userManager.isLoggedIn()) {
+          this.app.navigateTo('casino');
+        } else {
+          this.app.openModal('signup-modal');
+        }
+      });
+    }
+
+    // Section links
+    this.container.querySelectorAll('[data-page]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.app.navigateTo(link.dataset.page);
+      });
+    });
+  }
+}
