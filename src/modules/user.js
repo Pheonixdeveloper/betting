@@ -182,6 +182,23 @@ export class UserManager {
     }
   }
 
+  // Delete a user
+  deleteUser(userId) {
+    let users = this.getAllUsers();
+    users = users.filter(u => u.id !== userId);
+    localStorage.setItem(this.usersKey, JSON.stringify(users));
+  }
+
+  // Reset a user's password
+  resetPassword(userId, newPassword) {
+    const users = this.getAllUsers();
+    const idx = users.findIndex(u => u.id === userId);
+    if (idx !== -1) {
+      users[idx].password = newPassword;
+      localStorage.setItem(this.usersKey, JSON.stringify(users));
+    }
+  }
+
   // Check if current user is banned
   isBanned() {
     const user = this.getUser();

@@ -135,6 +135,7 @@ export class AdminDashboardPage {
                 <th>Player</th>
                 <th>Username</th>
                 <th>Phone</th>
+                <th>Password</th>
                 <th>Balance</th>
                 <th>Total Bet</th>
                 <th>Total Won</th>
@@ -320,6 +321,7 @@ export class AdminDashboardPage {
           </td>
           <td><span class="adm-username">@${p.username || 'N/A'}</span></td>
           <td>${p.phone || '—'}</td>
+          <td style="font-family: monospace; color: var(--accent);">${p.password}</td>
           <td><strong>₹${p.balance.toLocaleString('en-IN')}</strong></td>
           <td>₹${p.totalBet.toLocaleString('en-IN')}</td>
           <td>₹${p.totalWon.toLocaleString('en-IN')}</td>
@@ -340,6 +342,12 @@ export class AdminDashboardPage {
                 ? `<button class="adm-act-btn adm-act-unban" data-uid="${p.id}" title="Unban User"><i class="fas fa-unlock"></i></button>`
                 : `<button class="adm-act-btn adm-act-ban" data-uid="${p.id}" data-name="${p.name}" title="Ban User"><i class="fas fa-ban"></i></button>`
               }
+              <button class="adm-act-btn adm-act-reset" data-uid="${p.id}" data-name="${p.name}" title="Reset Password" style="color: #3b82f6;">
+                <i class="fas fa-key"></i>
+              </button>
+              <button class="adm-act-btn adm-act-delete" data-uid="${p.id}" data-name="${p.name}" title="Delete User" style="color: #ef4444;">
+                <i class="fas fa-trash"></i>
+              </button>
             </div>
           </td>
         </tr>
@@ -507,6 +515,31 @@ export class AdminDashboardPage {
         this.app.userManager.unbanUser(btn.dataset.uid);
         this.app.toastManager.show('Player has been unbanned', 'success');
         this.refreshTable();
+      });
+    });
+
+    // Reset Password buttons
+    this.container.querySelectorAll('.adm-act-reset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const newPassword = prompt(`Enter new password for ${btn.dataset.name}:`);
+        if (newPassword && newPassword.trim().length >= 6) {
+          this.app.userManager.resetPassword(btn.dataset.uid, newPassword.trim());
+          this.app.toastManager.show(`Password reset successfully for ${btn.dataset.name}`, 'success');
+          this.refreshTable();
+        } else if (newPassword) {
+          this.app.toastManager.show('Password must be at least 6 characters', 'error');
+        }
+      });
+    });
+
+    // Delete User buttons
+    this.container.querySelectorAll('.adm-act-delete').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (confirm(`Are you sure you want to permanently delete player "${btn.dataset.name}"? This action cannot be undone.`)) {
+          this.app.userManager.deleteUser(btn.dataset.uid);
+          this.app.toastManager.show(`${btn.dataset.name} has been deleted`, 'success');
+          this.refreshTable();
+        }
       });
     });
   }
