@@ -201,6 +201,19 @@ export class DragonTigerGame {
   placeBet(side) {
     if (this.isPlaying) return;
 
+    // Check if user is logged in before allowing bet
+    if (!this.app.userManager.isLoggedIn()) {
+      this.app.toastManager.show('Please login to place bets', 'warning');
+      this.app.openModal('login-modal');
+      return;
+    }
+
+    // Check if user is banned
+    if (this.app.userManager.isBanned()) {
+      this.app.toastManager.show('Your account has been suspended. Contact admin.', 'error');
+      return;
+    }
+
     const betAmount = parseFloat(document.getElementById('dt-bet-amount').value);
     if (!betAmount || betAmount < 10) {
       this.app.toastManager.show('Minimum bet is ₹10', 'warning');
@@ -215,6 +228,12 @@ export class DragonTigerGame {
     this.app.updateWalletDisplay();
     this.isPlaying = true;
     clearInterval(this.timer);
+
+    // Register live bet for Admin Dashboard
+    const user = this.app.userManager.getUser();
+    if (user) {
+      this.app.adminController.addLiveBet('dragon-tiger', user.username || user.name, betAmount, side);
+    }
 
     // Disable buttons
     document.querySelectorAll('.bet-option-btn').forEach(b => b.disabled = true);
@@ -305,6 +324,8 @@ export class DragonTigerGame {
     document.getElementById('dt-history-table').innerHTML = this.renderHistory();
 
     // Reset for next round
+    this.app.adminController.clearOverride('dragonTiger');
+    this.app.adminController.clearLiveBets('dragon-tiger');
     this.isPlaying = false;
     document.querySelectorAll('.bet-option-btn').forEach(b => b.disabled = false);
     this.startTimer();

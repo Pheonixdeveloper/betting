@@ -182,6 +182,19 @@ export class ColorGame {
   spin() {
     if (this.isSpinning || !this.selectedColor) return;
 
+    // Check if user is logged in before allowing bet
+    if (!this.app.userManager.isLoggedIn()) {
+      this.app.toastManager.show('Please login to place bets', 'warning');
+      this.app.openModal('login-modal');
+      return;
+    }
+
+    // Check if user is banned
+    if (this.app.userManager.isBanned()) {
+      this.app.toastManager.show('Your account has been suspended. Contact admin.', 'error');
+      return;
+    }
+
     const betAmount = parseFloat(document.getElementById('color-bet-amount').value);
     if (!betAmount || betAmount < 10) {
       this.app.toastManager.show('Minimum bet is ₹10', 'warning');
@@ -194,6 +207,13 @@ export class ColorGame {
     }
 
     this.app.updateWalletDisplay();
+
+    // Register live bet
+    const user = this.app.userManager.getUser();
+    if (user) {
+      this.app.adminController.addLiveBet('color-game', user.username || user.name, betAmount, this.selectedColor);
+    }
+
     this.isSpinning = true;
     document.getElementById('color-spin-btn').disabled = true;
     document.querySelectorAll('.color-option').forEach(b => b.disabled = true);
@@ -287,6 +307,8 @@ export class ColorGame {
     this.updateHistory();
 
     // Reset
+    this.app.adminController.clearOverride('colorGame');
+    this.app.adminController.clearLiveBets('color-game');
     this.selectedColor = null;
     document.querySelectorAll('.color-option').forEach(b => {
       b.disabled = false;

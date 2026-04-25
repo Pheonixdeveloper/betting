@@ -242,6 +242,8 @@ export class AviatorGame {
 
   startWaiting() {
     this.clearAllTimers();
+    this.app.adminController.clearOverride('aviatorCrash');
+    this.app.adminController.clearLiveBets('aviator');
     this.state = 'waiting';
     this.multiplier = 1.00;
     this.hasCashedOut = false;
@@ -499,6 +501,19 @@ export class AviatorGame {
     betBtn.addEventListener('click', () => {
       // PLACE BET - during waiting or countdown phase
       if ((this.state === 'waiting' || this.state === 'countdown') && !this.hasBet) {
+        // Check if user is logged in before allowing bet
+        if (!this.app.userManager.isLoggedIn()) {
+          this.app.toastManager.show('Please login to place bets', 'warning');
+          this.app.openModal('login-modal');
+          return;
+        }
+
+        // Check if user is banned
+        if (this.app.userManager.isBanned()) {
+          this.app.toastManager.show('Your account has been suspended. Contact admin.', 'error');
+          return;
+        }
+
         const amount = parseFloat(document.getElementById('aviator-bet-amount').value);
         if (!amount || amount < 10) {
           this.app.toastManager.show('Minimum bet is ₹10', 'warning');
@@ -523,6 +538,12 @@ export class AviatorGame {
         
         const statusEl = document.getElementById('aviator-status');
         if (statusEl) statusEl.innerHTML = `<span style="color: var(--success);">✅ Bet ₹${amount.toLocaleString()} placed! Waiting for takeoff...</span>`;
+
+        // Register live bet
+        const user = this.app.userManager.getUser();
+        if (user) {
+          this.app.adminController.addLiveBet('aviator', user.username || user.name, amount, 'Cashing Out');
+        }
 
         this.app.toastManager.show(`Bet ₹${amount.toLocaleString()} placed on Aviator`, 'info');
       }

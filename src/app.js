@@ -16,6 +16,7 @@ import { WalletPage } from './pages/wallet.js';
 import { ProfilePage } from './pages/profile.js';
 import { HistoryPage } from './pages/history.js';
 import { CasinoPage } from './pages/casino.js';
+import { AdminDashboardPage } from './pages/admin-dashboard.js';
 
 export class App {
   constructor() {
@@ -98,12 +99,8 @@ export class App {
     mainContent.innerHTML = '';
     mainContent.className = 'main-content fade-in';
 
-    const requiresAuth = ['dragon-tiger', 'teen-patti', 'aviator', 'color-game', 'roulette'];
-    if (requiresAuth.includes(page) && !this.userManager.isLoggedIn()) {
-      this.toastManager.show('Please login to play games', 'warning');
-      this.openModal('login-modal');
-      return;
-    }
+    // Games are visible to all users - auth check happens at bet placement
+    // const requiresAuth = ['dragon-tiger', 'teen-patti', 'aviator', 'color-game', 'roulette'];
 
     switch(page) {
       case 'home':
@@ -135,6 +132,14 @@ export class App {
         break;
       case 'history':
         new HistoryPage(mainContent, this);
+        break;
+      case 'admin-dashboard':
+        if (!this.userManager.isAdmin()) {
+          this.toastManager.show('Access denied', 'error');
+          this.navigateTo('home');
+          return;
+        }
+        new AdminDashboardPage(mainContent, this);
         break;
       default:
         new HomePage(mainContent, this);
@@ -193,9 +198,18 @@ export class App {
     document.getElementById('login-modal').querySelector('.modal-overlay').addEventListener('click', () => this.closeModal('login-modal'));
 
     // Signup modal
-    document.getElementById('btn-signup').addEventListener('click', () => this.openModal('signup-modal'));
-    document.getElementById('signup-modal-close').addEventListener('click', () => this.closeModal('signup-modal'));
-    document.getElementById('signup-modal').querySelector('.modal-overlay').addEventListener('click', () => this.closeModal('signup-modal'));
+    document.getElementById('btn-signup')?.addEventListener('click', () => this.openModal('signup-modal'));
+    document.getElementById('signup-modal-close')?.addEventListener('click', () => this.closeModal('signup-modal'));
+    document.getElementById('signup-modal')?.querySelector('.modal-overlay').addEventListener('click', () => this.closeModal('signup-modal'));
+
+    // Reset Password modal
+    const cancelReset = () => {
+      this.closeModal('reset-modal');
+      this.userManager.logout();
+      this.toastManager.show('Logged out. Password reset is required to continue.', 'warning');
+    };
+    document.getElementById('reset-modal-close').addEventListener('click', cancelReset);
+    document.getElementById('reset-modal').querySelector('.modal-overlay').addEventListener('click', cancelReset);
 
     // Switch modals
     document.getElementById('switch-to-signup').addEventListener('click', (e) => {
@@ -215,15 +229,15 @@ export class App {
     this.depositMethod = 'upi';
     this.depositTimerInterval = null;
 
-    document.getElementById('btn-deposit').addEventListener('click', () => {
+    document.getElementById('btn-deposit')?.addEventListener('click', () => {
       this.resetDepositFlow();
       this.openModal('deposit-modal');
     });
-    document.getElementById('deposit-modal-close').addEventListener('click', () => {
+    document.getElementById('deposit-modal-close')?.addEventListener('click', () => {
       this.closeModal('deposit-modal');
       this.clearDepositTimer();
     });
-    document.getElementById('deposit-modal').querySelector('.modal-overlay').addEventListener('click', () => {
+    document.getElementById('deposit-modal')?.querySelector('.modal-overlay').addEventListener('click', () => {
       this.closeModal('deposit-modal');
       this.clearDepositTimer();
     });
@@ -314,12 +328,12 @@ export class App {
     this.withdrawAmount = 0;
     this.withdrawMethod = 'upi';
 
-    document.getElementById('btn-withdraw').addEventListener('click', () => {
+    document.getElementById('btn-withdraw')?.addEventListener('click', () => {
       this.resetWithdrawFlow();
       this.openModal('withdraw-modal');
     });
-    document.getElementById('withdraw-modal-close').addEventListener('click', () => this.closeModal('withdraw-modal'));
-    document.getElementById('withdraw-modal').querySelector('.modal-overlay').addEventListener('click', () => this.closeModal('withdraw-modal'));
+    document.getElementById('withdraw-modal-close')?.addEventListener('click', () => this.closeModal('withdraw-modal'));
+    document.getElementById('withdraw-modal')?.querySelector('.modal-overlay').addEventListener('click', () => this.closeModal('withdraw-modal'));
 
     // Withdraw quick amounts
     document.querySelectorAll('.wd-quick-amount').forEach(btn => {
@@ -667,25 +681,37 @@ export class App {
   setupAuth() {
     document.getElementById('login-form').addEventListener('submit', (e) => {
       e.preventDefault();
+      const username = document.getElementById('login-username').value;
       const phone = document.getElementById('login-phone').value;
       const password = document.getElementById('login-password').value;
 
-      if (this.userManager.login(phone, password)) {
+      if (this.userManager.login(username, phone, password)) {
         this.closeModal('login-modal');
+
+        // Check if user needs to reset password (first-time login)
+        const user = this.userManager.getUser();
+        if (user.mustResetPassword && !user.isAdmin) {
+          this.openModal('reset-modal');
+          this.toastManager.show('Please set a new password to continue', 'warning');
+          return;
+        }
+
         this.updateAuthUI();
         if (this.userManager.isAdmin()) {
-          this.toastManager.show('👑 Welcome Admin! God mode enabled.', 'success');
+          this.toastManager.show('👑 Welcome! Admin + Superuser mode enabled.', 'success');
         } else {
           this.toastManager.show('Welcome back! Login successful.', 'success');
         }
         this.navigateTo(this.currentPage);
       } else {
-        this.toastManager.show('Invalid credentials. Try signing up first.', 'error');
+        this.toastManager.show('Invalid credentials.', 'error');
       }
     });
 
+    // Sign up form
     document.getElementById('signup-form').addEventListener('submit', (e) => {
       e.preventDefault();
+      const username = document.getElementById('signup-username').value;
       const name = document.getElementById('signup-name').value;
       const phone = document.getElementById('signup-phone').value;
       const email = document.getElementById('signup-email').value;
@@ -702,11 +728,62 @@ export class App {
         return;
       }
 
-      this.userManager.register({ name, phone, email, password });
+      if (username.length < 3) {
+        this.toastManager.show('Username must be at least 3 characters', 'error');
+        return;
+      }
+
+      // Check if username is already taken
+      const existingUsers = this.userManager.getAllUsers();
+      if (existingUsers.find(u => u.username === username)) {
+        this.toastManager.show('Username already taken. Choose a different one.', 'error');
+        return;
+      }
+
+      this.userManager.register({ username, name, phone, email, password });
       this.walletManager.deposit(1000); // Welcome bonus
       this.closeModal('signup-modal');
       this.updateAuthUI();
       this.toastManager.show('Account created! ₹1,000 welcome bonus added!', 'success');
+      this.navigateTo(this.currentPage);
+    });
+
+    // Password reset form (for first-time users)
+    document.getElementById('reset-password-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newPassword = document.getElementById('reset-new-password').value;
+      const confirmPassword = document.getElementById('reset-confirm-password').value;
+
+      if (newPassword !== confirmPassword) {
+        this.toastManager.show('Passwords do not match', 'error');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        this.toastManager.show('Password must be at least 6 characters', 'error');
+        return;
+      }
+
+      // Update user's password and clear the reset flag
+      const user = this.userManager.getUser();
+      this.userManager.updateUser({
+        password: newPassword,
+        mustResetPassword: false
+      });
+
+      // Also update in users list
+      const users = this.userManager.getAllUsers();
+      const idx = users.findIndex(u => u.id === user.id);
+      if (idx !== -1) {
+        users[idx].password = newPassword;
+        users[idx].mustResetPassword = false;
+        localStorage.setItem('earn10x_users', JSON.stringify(users));
+      }
+
+      this.closeModal('reset-modal');
+      this.updateAuthUI();
+      this.toastManager.show('Password updated! Welcome to EARN10X.', 'success');
+      this.navigateTo(this.currentPage);
     });
 
     document.getElementById('btn-logout').addEventListener('click', (e) => {
@@ -723,8 +800,27 @@ export class App {
     document.getElementById('logged-out-buttons').style.display = loggedIn ? 'none' : 'flex';
     document.getElementById('logged-in-buttons').style.display = loggedIn ? 'flex' : 'none';
 
+    // Show/hide admin dashboard link in sidebar
+    const adminSidebarLink = document.getElementById('admin-sidebar-link');
+    if (adminSidebarLink) {
+      adminSidebarLink.style.display = (loggedIn && this.userManager.isAdmin()) ? '' : 'none';
+    }
+    // Show/hide superuser link in sidebar
+    const superuserSidebarLink = document.getElementById('superuser-sidebar-link');
+    if (superuserSidebarLink) {
+      superuserSidebarLink.style.display = (loggedIn && this.userManager.isAdmin()) ? '' : 'none';
+    }
+    // Show/hide admin dashboard link in dropdown
+    const adminDropdownLink = document.getElementById('admin-dropdown-link');
+    if (adminDropdownLink) {
+      adminDropdownLink.style.display = (loggedIn && this.userManager.isAdmin()) ? '' : 'none';
+    }
+
     if (loggedIn) {
       const user = this.userManager.getUser();
+      // Set wallet context to this user
+      this.walletManager.setCurrentUser(user.id);
+
       document.getElementById('user-avatar').textContent = user.name.charAt(0).toUpperCase();
       
       // Admin badge

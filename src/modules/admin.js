@@ -1,6 +1,6 @@
 // ========================================
-// ADMIN CONTROLLER
-// Provides admin with full game control:
+// SUPERUSER CONTROLLER
+// Provides superuser with full game control:
 // - View next outcome before it happens
 // - Force specific results
 // - Adjust win probability
@@ -36,6 +36,29 @@ export class AdminController {
       colorGame: null,
       roulette: null
     };
+
+    // Track live bets across the platform
+    this.liveBets = [];
+  }
+
+  // Record a live bet
+  addLiveBet(gameId, userName, amount, choice) {
+    this.liveBets.push({
+      id: Date.now().toString(),
+      gameId,
+      userName,
+      amount,
+      choice,
+      time: new Date().toLocaleTimeString()
+    });
+  }
+
+  getLiveBets() {
+    return this.liveBets;
+  }
+
+  clearLiveBets(gameId) {
+    this.liveBets = this.liveBets.filter(bet => bet.gameId !== gameId);
   }
 
   isActive() {
@@ -90,7 +113,7 @@ export class AdminController {
     return `
       <div class="admin-game-panel" id="admin-game-panel">
         <div class="admin-panel-header">
-          <span><i class="fas fa-crown"></i> ADMIN CONTROL</span>
+          <span><i class="fas fa-crown"></i> SUPERUSER CONTROL</span>
           <button class="admin-toggle-btn" id="admin-panel-toggle">
             <i class="fas fa-chevron-down"></i>
           </button>
@@ -229,7 +252,7 @@ export class AdminController {
 
         if (val !== null && val !== undefined && val !== '') {
           this.setOverride(game, val);
-          this.app.toastManager.show(`🔧 Admin: Next ${game} result forced to: ${val}`, 'info');
+          this.app.toastManager.show(`🔧 Superuser: Next ${game} result forced to: ${val}`, 'info');
 
           // Highlight active button
           document.querySelectorAll(`.admin-btn-force[data-game="${game}"]`).forEach(b => b.classList.remove('active'));
@@ -243,7 +266,7 @@ export class AdminController {
     if (winBoostSelect) {
       winBoostSelect.addEventListener('change', () => {
         this.overrides.winBoost = parseInt(winBoostSelect.value);
-        this.app.toastManager.show(`🔧 Admin: Win boost set to ${winBoostSelect.value}x`, 'info');
+        this.app.toastManager.show(`🔧 Superuser: Win boost set to ${winBoostSelect.value}x`, 'info');
       });
     }
 
@@ -253,7 +276,7 @@ export class AdminController {
       addBalBtn.addEventListener('click', () => {
         this.app.walletManager.deposit(10000);
         this.app.updateWalletDisplay();
-        this.app.toastManager.show('🔧 Admin: ₹10,000 added to wallet', 'success');
+        this.app.toastManager.show('🔧 Superuser: ₹10,000 added to wallet', 'success');
       });
     }
 
@@ -272,7 +295,7 @@ export class AdminController {
           predictEl.textContent = 'Random';
           predictEl.style.color = 'var(--text-muted)';
         }
-        this.app.toastManager.show('🔧 Admin: All overrides cleared', 'info');
+        this.app.toastManager.show('🔧 Superuser: All overrides cleared', 'info');
       });
     }
   }

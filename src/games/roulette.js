@@ -210,6 +210,19 @@ export class RouletteGame {
   spin() {
     if (this.isSpinning || this.selectedBets.length === 0) return;
 
+    // Check if user is logged in before allowing bet
+    if (!this.app.userManager.isLoggedIn()) {
+      this.app.toastManager.show('Please login to place bets', 'warning');
+      this.app.openModal('login-modal');
+      return;
+    }
+
+    // Check if user is banned
+    if (this.app.userManager.isBanned()) {
+      this.app.toastManager.show('Your account has been suspended. Contact admin.', 'error');
+      return;
+    }
+
     const betAmount = parseFloat(document.getElementById('roulette-bet-amount').value);
     if (!betAmount || betAmount < 10) {
       this.app.toastManager.show('Minimum bet is ₹10', 'warning');
@@ -222,6 +235,14 @@ export class RouletteGame {
     }
 
     this.app.updateWalletDisplay();
+
+    // Register live bet
+    const user = this.app.userManager.getUser();
+    if (user) {
+      const displayBet = this.selectedBets.map(b => b.type === 'number' ? b.value : b.type).join(', ');
+      this.app.adminController.addLiveBet('roulette', user.username || user.name, betAmount, displayBet);
+    }
+
     this.isSpinning = true;
     document.getElementById('roulette-spin-btn').disabled = true;
     document.getElementById('roulette-game-result').innerHTML = '';
@@ -346,6 +367,8 @@ export class RouletteGame {
     this.updateHistory();
 
     // Clear bets
+    this.app.adminController.clearOverride('roulette');
+    this.app.adminController.clearLiveBets('roulette');
     this.selectedBets = [];
     this.updateSelectedDisplay();
     document.querySelectorAll('.roulette-bet-cell, .roulette-outside-btn').forEach(el => {

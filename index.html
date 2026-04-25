@@ -52,25 +52,19 @@
         <div class="header-right" id="auth-buttons">
           <div id="logged-out-buttons">
             <button class="btn btn-login" id="btn-login">Log In</button>
-            <button class="btn btn-signup" id="btn-signup">Sign Up</button>
           </div>
           <div id="logged-in-buttons" style="display:none;">
             <div class="wallet-display" id="wallet-display">
               <i class="fas fa-wallet"></i>
               <span id="wallet-amount">₹0.00</span>
             </div>
-            <button class="btn btn-withdraw" id="btn-withdraw">
-              <i class="fas fa-money-bill-wave"></i> Withdraw
-            </button>
-            <button class="btn btn-deposit" id="btn-deposit">
-              <i class="fas fa-plus-circle"></i> Deposit
-            </button>
             <div class="user-menu" id="user-menu-toggle">
               <div class="user-avatar" id="user-avatar">U</div>
               <div class="user-dropdown" id="user-dropdown">
                 <a href="#" data-page="profile" class="dropdown-item"><i class="fas fa-user"></i> Profile</a>
                 <a href="#" data-page="wallet" class="dropdown-item"><i class="fas fa-wallet"></i> Wallet</a>
                 <a href="#" data-page="history" class="dropdown-item"><i class="fas fa-history"></i> History</a>
+                <a href="#" data-page="admin-dashboard" class="dropdown-item" id="admin-dropdown-link" style="display:none;"><i class="fas fa-shield-alt"></i> Admin Dashboard</a>
                 <a href="#" id="btn-logout" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
               </div>
             </div>
@@ -113,6 +107,14 @@
           <a href="#" class="sidebar-item" data-page="history"><i class="fas fa-history"></i> Bet History</a>
           <a href="#" class="sidebar-item" data-page="profile"><i class="fas fa-user-cog"></i> Settings</a>
         </div>
+        <div class="sidebar-section" id="admin-sidebar-link" style="display: none;">
+          <h4><i class="fas fa-shield-alt"></i> Admin</h4>
+          <a href="#" class="sidebar-item" data-page="admin-dashboard"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</a>
+        </div>
+        <div class="sidebar-section" id="superuser-sidebar-link" style="display: none;">
+          <h4><i class="fas fa-crown"></i> Superuser</h4>
+          <p style="padding: 0 1.25rem; font-size: 0.75rem; color: var(--text-muted);">Game control panel appears inside each game page</p>
+        </div>
       </div>
     </aside>
 
@@ -154,15 +156,6 @@
             <a href="#">KYC Policy</a>
           </div>
         </div>
-        <div class="footer-payment">
-          <h4>Payment Methods</h4>
-          <div class="payment-icons">
-            <div class="payment-icon"><i class="fas fa-mobile-alt"></i> UPI</div>
-            <div class="payment-icon"><i class="fas fa-university"></i> Bank Transfer</div>
-            <div class="payment-icon"><i class="fas fa-credit-card"></i> Card</div>
-            <div class="payment-icon"><i class="fas fa-wallet"></i> E-Wallet</div>
-          </div>
-        </div>
         <div class="footer-bottom">
           <p>&copy; 2026 EARN10X. All rights reserved. Play responsibly. 18+</p>
           <div class="footer-badges">
@@ -188,15 +181,21 @@
         </div>
         <form id="login-form" class="auth-form">
           <div class="form-group">
-            <label for="login-phone"><i class="fas fa-phone"></i> Phone Number</label>
-            <input type="tel" id="login-phone" placeholder="+91 Enter phone number" required />
+            <label for="login-username"><i class="fas fa-user"></i> Username</label>
+            <input type="text" id="login-username" placeholder="Enter your username" required />
+          </div>
+          <div class="form-group">
+            <label for="login-phone"><i class="fas fa-phone"></i> Phone Number <span style="font-size: 0.75rem; color: var(--text-muted);">(not needed for admin)</span></label>
+            <input type="tel" id="login-phone" placeholder="+91 Enter phone number" />
           </div>
           <div class="form-group">
             <label for="login-password"><i class="fas fa-lock"></i> Password</label>
             <input type="password" id="login-password" placeholder="Enter password" required />
           </div>
           <button type="submit" class="btn btn-primary btn-full" id="login-submit">Log In</button>
-          <p class="auth-switch">Don't have an account? <a href="#" id="switch-to-signup">Sign Up</a></p>
+          <p class="auth-switch" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1rem;">
+            Don't have an account? <a href="#" id="switch-to-signup" style="color: var(--primary); font-weight: 600;">Sign Up</a>
+          </p>
         </form>
       </div>
     </div>
@@ -214,6 +213,10 @@
           <p>Join the premium gaming experience</p>
         </div>
         <form id="signup-form" class="auth-form">
+          <div class="form-group">
+            <label for="signup-username"><i class="fas fa-at"></i> Username</label>
+            <input type="text" id="signup-username" placeholder="Choose a username" required />
+          </div>
           <div class="form-group">
             <label for="signup-name"><i class="fas fa-user"></i> Full Name</label>
             <input type="text" id="signup-name" placeholder="Enter your name" required />
@@ -241,6 +244,34 @@
           <button type="submit" class="btn btn-primary btn-full" id="signup-submit">Create Account</button>
           <p class="auth-switch">Already have an account? <a href="#" id="switch-to-login">Log In</a></p>
         </form>
+      </div>
+    </div>
+
+    <!-- Password Reset Modal (for first-time users) -->
+    <div id="reset-modal" class="modal">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <button class="modal-close" id="reset-modal-close"><i class="fas fa-times"></i></button>
+        <div class="modal-header">
+          <div class="modal-logo">
+            <span class="logo-lotus">EARN</span><span class="logo-365">10X</span>
+          </div>
+          <h2>Set Your Password</h2>
+          <p>You must change your temporary password before playing</p>
+        </div>
+        <form id="reset-password-form" class="auth-form">
+          <div class="form-group">
+            <label for="reset-new-password"><i class="fas fa-lock"></i> New Password</label>
+            <input type="password" id="reset-new-password" placeholder="Enter new password" required />
+          </div>
+          <div class="form-group">
+            <label for="reset-confirm-password"><i class="fas fa-lock"></i> Confirm Password</label>
+            <input type="password" id="reset-confirm-password" placeholder="Confirm new password" required />
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" id="reset-submit">Set Password & Continue</button>
+        </form>
+      </div>
+    </div>
       </div>
     </div>
 

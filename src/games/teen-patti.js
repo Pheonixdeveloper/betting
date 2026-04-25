@@ -195,6 +195,19 @@ export class TeenPattiGame {
   placeBet(side) {
     if (this.isPlaying) return;
 
+    // Check if user is logged in before allowing bet
+    if (!this.app.userManager.isLoggedIn()) {
+      this.app.toastManager.show('Please login to place bets', 'warning');
+      this.app.openModal('login-modal');
+      return;
+    }
+
+    // Check if user is banned
+    if (this.app.userManager.isBanned()) {
+      this.app.toastManager.show('Your account has been suspended. Contact admin.', 'error');
+      return;
+    }
+
     const betAmount = parseFloat(document.getElementById('tp-bet-amount').value);
     if (!betAmount || betAmount < 10) {
       this.app.toastManager.show('Minimum bet is ₹10', 'warning');
@@ -213,6 +226,12 @@ export class TeenPattiGame {
     document.getElementById('tp-result').innerHTML = '';
 
     this.app.toastManager.show(`Bet ₹${betAmount} on Player ${side}`, 'info');
+
+    // Register live bet
+    const user = this.app.userManager.getUser();
+    if (user) {
+      this.app.adminController.addLiveBet('teen-patti', user.username || user.name, betAmount, side);
+    }
 
     // Draw hands - with admin override support
     const override = this.admin.getOverride('teenPatti');
@@ -281,6 +300,8 @@ export class TeenPattiGame {
       this.history.unshift({ winner, handA: rankA.name, handB: rankB.name });
       this.updateHistoryDisplays();
 
+      this.app.adminController.clearOverride('teenPatti');
+      this.app.adminController.clearLiveBets('teen-patti');
       this.isPlaying = false;
       document.querySelectorAll('.bet-option-btn').forEach(b => b.disabled = false);
       this.startTimer();
