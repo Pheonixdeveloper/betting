@@ -24,6 +24,10 @@ export class AdminController {
       colorGame: null,
       // Roulette: specific number (0-36) or null
       roulette: null,
+      // Andar Bahar: 'Andar' | 'Bahar' | null
+      andarBahar: null,
+      // Baccarat: 'Player' | 'Banker' | 'Tie' | null
+      baccarat: null,
       // Global win probability multiplier (1 = normal, higher = more wins)
       winBoost: 1
     };
@@ -34,7 +38,9 @@ export class AdminController {
       teenPatti: null,
       aviatorCrash: null,
       colorGame: null,
-      roulette: null
+      roulette: null,
+      andarBahar: null,
+      baccarat: null
     };
 
     // Track live bets across the platform
@@ -107,7 +113,9 @@ export class AdminController {
       'teen-patti': this.teenPattiPanel(),
       'aviator': this.aviatorPanel(),
       'color-game': this.colorGamePanel(),
-      'roulette': this.roulettePanel()
+      'roulette': this.roulettePanel(),
+      'andar-bahar': this.andarBaharPanel(),
+      'baccarat': this.baccaratPanel()
     };
 
     return `
@@ -133,10 +141,14 @@ export class AdminController {
               <option value="10" ${this.overrides.winBoost === 10 ? 'selected' : ''}>Always Win</option>
             </select>
           </div>
-          <div class="admin-action-row">
-            <button class="admin-btn admin-btn-add" id="admin-add-balance">
-              <i class="fas fa-plus"></i> +₹10,000
-            </button>
+          <div class="admin-action-row" style="margin-top: 0.75rem;">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <label class="admin-label">Credit Account:</label>
+              <input type="number" id="admin-custom-credit" class="admin-input" placeholder="Amount" style="width: 100px;" />
+              <button class="admin-btn admin-btn-add" id="admin-add-balance" style="flex: none;">
+                <i class="fas fa-plus"></i> Add Points
+              </button>
+            </div>
             <button class="admin-btn admin-btn-clear" id="admin-clear-override">
               <i class="fas fa-times"></i> Clear Override
             </button>
@@ -219,6 +231,31 @@ export class AdminController {
     `;
   }
 
+  andarBaharPanel() {
+    return `
+      <div class="admin-action-row">
+        <label class="admin-label">Force Result:</label>
+        <div class="admin-btn-group">
+          <button class="admin-btn admin-btn-force" data-game="andarBahar" data-val="Andar" style="background:#3b82f6;">Andar</button>
+          <button class="admin-btn admin-btn-force" data-game="andarBahar" data-val="Bahar" style="background:#ef4444;">Bahar</button>
+        </div>
+      </div>
+    `;
+  }
+
+  baccaratPanel() {
+    return `
+      <div class="admin-action-row">
+        <label class="admin-label">Force Winner:</label>
+        <div class="admin-btn-group">
+          <button class="admin-btn admin-btn-force" data-game="baccarat" data-val="Player" style="background:#3b82f6;">Player</button>
+          <button class="admin-btn admin-btn-force" data-game="baccarat" data-val="Banker" style="background:#ef4444;">Banker</button>
+          <button class="admin-btn admin-btn-force" data-game="baccarat" data-val="Tie" style="background:#22c55e;">Tie</button>
+        </div>
+      </div>
+    `;
+  }
+
   // Setup event listeners for admin controls inside game pages
   setupGamePanelEvents(gameKey) {
     if (!this.isActive()) return;
@@ -274,9 +311,17 @@ export class AdminController {
     const addBalBtn = document.getElementById('admin-add-balance');
     if (addBalBtn) {
       addBalBtn.addEventListener('click', () => {
-        this.app.walletManager.deposit(10000);
-        this.app.updateWalletDisplay();
-        this.app.toastManager.show('🔧 Superuser: ₹10,000 added to wallet', 'success');
+        let amount = 10000;
+        const customInput = document.getElementById('admin-custom-credit');
+        if (customInput && customInput.value) {
+          amount = parseFloat(customInput.value);
+        }
+        if (amount > 0) {
+          this.app.walletManager.deposit(amount);
+          this.app.updateWalletDisplay();
+          this.app.toastManager.show(`🔧 Superuser: ₹${amount.toLocaleString()} points credited`, 'success');
+          if (customInput) customInput.value = '';
+        }
       });
     }
 
@@ -289,6 +334,8 @@ export class AdminController {
         this.overrides.aviatorCrash = null;
         this.overrides.colorGame = null;
         this.overrides.roulette = null;
+        this.overrides.andarBahar = null;
+        this.overrides.baccarat = null;
         document.querySelectorAll('.admin-btn-force').forEach(b => b.classList.remove('active'));
         const predictEl = document.querySelector('.admin-value');
         if (predictEl) {

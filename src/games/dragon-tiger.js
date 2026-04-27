@@ -187,15 +187,28 @@ export class DragonTigerGame {
     return { dragonCard, tigerCard };
   }
 
-  revealCard(elementId, card) {
-    const el = document.getElementById(elementId);
-    el.innerHTML = `
-      <span style="color: ${card.color}; font-size: 2rem; font-weight: 800;">${card.value}</span>
-      <span class="dt-card-suit" style="color: ${card.color};">${card.suit}</span>
-    `;
-    el.classList.add('revealed');
-    el.style.background = 'linear-gradient(145deg, #1f2937, #111827)';
-    el.style.borderColor = card.color === '#ef4444' ? '#ef4444' : '#fff';
+  revealCard(elementId, card, delay = 0) {
+    const cardEl = document.getElementById(elementId);
+    setTimeout(() => {
+      cardEl.innerHTML = `
+        <div style="display:flex; flex-direction:column; justify-content:space-between; height:100%; padding:0.4rem;">
+          <div style="color: ${card.color}; font-weight: 800; font-family: 'Times New Roman', serif; font-size:1.5rem; line-height:1; text-align:left;">
+            ${card.value}
+          </div>
+          <div style="color: ${card.color}; font-size: 3.5rem; text-align: center; text-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            ${card.suit}
+          </div>
+          <div style="color: ${card.color}; font-weight: 800; font-family: 'Times New Roman', serif; font-size:1.5rem; transform: rotate(180deg); line-height:1; text-align:left;">
+            ${card.value}
+          </div>
+        </div>
+      `;
+      cardEl.classList.add('revealed');
+      cardEl.style.background = '#ffffff';
+      cardEl.style.color = '#000000';
+      cardEl.style.border = '1px solid #d1d5db';
+      cardEl.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2)';
+    }, delay);
   }
 
   placeBet(side) {
@@ -236,29 +249,32 @@ export class DragonTigerGame {
     }
 
     // Disable buttons
-    document.querySelectorAll('.bet-option-btn').forEach(b => b.disabled = true);
+    document.getElementById('dt-result').textContent = 'Dealing...';
+    document.getElementById('dragon-card').innerHTML = '';
+    document.getElementById('tiger-card').innerHTML = '';
+    
+    // First 2 games hooking logic - GUARANTEED WIN
+    let forceWinChoice = null;
+    if (user && this.app.walletManager.getGamePlayCount(user.id, 'Dragon Tiger') <= 2) {
+      forceWinChoice = side.toLowerCase(); // 'dragon', 'tiger', or 'tie'
+    }
 
-    // Reset cards
-    document.getElementById('dragon-card').innerHTML = '<div class="card-back"><i class="fas fa-dragon"></i></div>';
-    document.getElementById('tiger-card').innerHTML = '<div class="card-back"><i class="fas fa-paw"></i></div>';
-    document.getElementById('dt-result').innerHTML = '';
-
-    this.app.toastManager.show(`Bet ₹${betAmount} on ${side}`, 'info');
-
-    // Check admin override
-    let dragonCard, tigerCard;
+    // Determine result
+    // Order of precedence: 1. Admin Override  2. Initial Hook Win  3. Random
     const override = this.admin.getOverride('dragonTiger');
-
-    if (override) {
-      const rigged = this.drawRiggedCards(override);
+    const forcedWinner = override || forceWinChoice;
+    
+    let dragonCard, tigerCard;
+    if (forcedWinner) {
+      const rigged = this.drawRiggedCards(forcedWinner);
       dragonCard = rigged.dragonCard;
       tigerCard = rigged.tigerCard;
-      this.admin.clearOverride('dragonTiger');
+      if (override) this.admin.clearOverride('dragonTiger');
     } else {
       dragonCard = this.drawCard();
       tigerCard = this.drawCard();
     }
-
+    
     // Show admin the outcome before reveal
     const winner = dragonCard.numericValue > tigerCard.numericValue ? 'Dragon'
       : tigerCard.numericValue > dragonCard.numericValue ? 'Tiger' : 'Tie';

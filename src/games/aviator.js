@@ -43,7 +43,7 @@ export class AviatorGame {
     this.container.innerHTML = `
       <div class="game-page">
         <div class="game-header">
-          <div class="game-header-icon">✈️</div>
+          <div class="game-header-icon"><img src="/plane.png" style="height:35px;" /></div>
           <h1>Aviator</h1>
           <p>Cash out before the plane flies away! • Multipliers up to 100x</p>
         </div>
@@ -56,12 +56,48 @@ export class AviatorGame {
         </div>
 
         <!-- Game Display -->
-        <div class="aviator-display" id="aviator-display">
+        <div class="aviator-display" id="aviator-display" style="position: relative; overflow: hidden;">
           <canvas id="aviator-canvas"></canvas>
           <div class="aviator-multiplier" id="aviator-multiplier">
             NEXT ROUND...
           </div>
-          <div class="aviator-plane" id="aviator-plane" style="display: none;">✈️</div>
+          <div class="aviator-plane" id="aviator-plane" style="display: none; position: absolute; top: 0; left: 0; z-index: 10; transition: transform 0.05s linear;">
+            <!-- Classic Aviator Propeller Plane SVG -->
+            <svg id="aviator-plane-img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 120" width="130" height="65" style="filter: drop-shadow(0 10px 10px rgba(220,10,40,0.4));">
+              <!-- Propeller -->
+              <path d="M205,10 Q215,5 210,50 L205,65 Q195,115 205,105 Q215,90 208,60 L213,50 Q225,10 205,10 Z" fill="#e61a3c"/>
+              
+              <!-- Main Body -->
+              <path d="M30,85 L20,75 L50,65 L80,60 L100,45 Q120,35 140,40 L160,45 Q190,45 195,65 L180,80 L110,95 L65,105 L40,105 L25,110 Z" fill="#e61a3c"/>
+              
+              <!-- Black window cutout / shading -->
+              <path d="M100,45 Q120,35 140,40 L150,55 L115,55 Z" fill="rgba(0,0,0,0.3)"/>
+              
+              <!-- Lower Underbelly -->
+              <path d="M80,80 L120,70 L155,60 L145,85 L90,95 Z" fill="#a4071c"/>
+              
+              <!-- Wing with "X" -->
+              <path d="M90,65 L160,55 L180,65 L95,85 Z" fill="#e61a3c" stroke="#aa0518" stroke-width="2"/>
+              <text x="135" y="72" font-family="Helvetica, Arial, sans-serif" font-weight="900" font-size="22" font-style="italic" fill="#111" transform="rotate(-12 135 72)">X</text>
+
+              <!-- Tail Fins -->
+              <path d="M50,65 L40,40 Q35,35 45,45 L58,60 Z" fill="#e61a3c"/>
+              <path d="M40,105 L25,120 Q30,125 45,110 L50,105 Z" fill="#e61a3c"/>
+              <path d="M20,75 L10,85 L30,85 Z" fill="#a4071c"/>
+            </svg>
+            
+            <!-- Explosion Vector -->
+            <svg id="aviator-crash-img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="90" height="90" fill="url(#crashGrad)" style="display: none; transform: translate(-10px, -10px); filter: drop-shadow(0 0 25px rgba(249, 115, 22, 1));">
+              <defs>
+                <radialGradient id="crashGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                  <stop offset="0%" style="stop-color:#fef08a;stop-opacity:1" />
+                  <stop offset="40%" style="stop-color:#f97316;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+                </radialGradient>
+              </defs>
+              <path d="M441.9 176c1.1-39.2-28.7-65.7-65.4-69.5-12.7-52.6-67.9-61.9-97.1-32.9C258.1 42 216 46.5 196.3 84.1c-43.2-13.8-78.3 18.8-63.7 61.2C93.4 153.1 64 191.1 64 233.1c0 52 35.8 96.1 84.2 107.5 16.4 56.5 86 70.8 124 23.9 33.3 26 79.5 28.5 106.8-5.3 47.9-2.3 85-39 85-87.1 0-38.9-23.7-72.6-58.1-88.7zM250 357.7c-31.4 0-56.9-25.5-56.9-56.9S218.6 244 250 244s56.9 25.5 56.9 56.9-25.5 56.8-56.9 56.8z"/>
+            </svg>
+          </div>
         </div>
 
         <!-- Controls -->
@@ -217,11 +253,10 @@ export class AviatorGame {
 
     this.ctx.shadowBlur = 0;
 
-    // Update plane position
+    // Update plane position mapping tightly to the canvas tip
     const plane = document.getElementById('aviator-plane');
     if (plane && this.state === 'flying') {
-      plane.style.left = `${Math.min(lastX, width - 40)}px`;
-      plane.style.top = `${Math.max(lastY - 20, 10)}px`;
+      plane.style.transform = `translate(${Math.max(0, lastX - 35)}px, ${Math.max(0, lastY - 45)}px)`;
     }
   }
 
@@ -260,6 +295,8 @@ export class AviatorGame {
     if (plane) {
       plane.style.display = 'none';
       plane.classList.remove('crashed');
+      document.getElementById('aviator-plane-img').style.display = 'block';
+      document.getElementById('aviator-crash-img').style.display = 'none';
     }
 
     const statusEl = document.getElementById('aviator-status');
@@ -329,11 +366,21 @@ export class AviatorGame {
     this.state = 'flying';
     this.multiplier = 1.00;
 
-    // Check admin override for crash point
+    // Admin logic & First 2 games hooking logic
     const override = this.admin.getOverride('aviatorCrash');
+    const user = this.app.userManager.getUser();
+    let hookCrashPoint = null;
+    
+    // Auto-boost to 10.5x if this is their 1st or 2nd time playing!
+    if (user && this.hasBet && this.app.walletManager.getGamePlayCount(user.id, 'Aviator') <= 2) {
+      hookCrashPoint = 10.5 + Math.random() * 5.0; // Guaranteed win past 10x
+    }
+
     if (override && !isNaN(override)) {
       this.crashPoint = parseFloat(override);
       this.admin.clearOverride('aviatorCrash');
+    } else if (hookCrashPoint) {
+      this.crashPoint = hookCrashPoint;
     } else {
       this.crashPoint = this.generateCrashPoint();
     }
@@ -346,9 +393,11 @@ export class AviatorGame {
     const plane = document.getElementById('aviator-plane');
     if (plane) {
       plane.style.display = 'block';
-      plane.style.left = '5%';
-      plane.style.top = '80%';
+      plane.style.display = 'block';
+      plane.style.transform = 'translate(5%, 80%)';
       plane.classList.remove('crashed');
+      document.getElementById('aviator-plane-img').style.display = 'block';
+      document.getElementById('aviator-crash-img').style.display = 'none';
     }
 
     const betBtn = document.getElementById('aviator-bet-btn');
@@ -430,7 +479,11 @@ export class AviatorGame {
     }
 
     const plane = document.getElementById('aviator-plane');
-    if (plane) plane.classList.add('crashed');
+    if (plane) {
+      plane.classList.add('crashed');
+      document.getElementById('aviator-plane-img').style.display = 'none';
+      document.getElementById('aviator-crash-img').style.display = 'block';
+    }
 
     const betBtn = document.getElementById('aviator-bet-btn');
     if (betBtn) {

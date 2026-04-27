@@ -220,14 +220,18 @@ export class ColorGame {
     document.getElementById('color-game-result').innerHTML = '';
     document.getElementById('color-result-area').innerHTML = '';
 
-    // Determine result - with admin override
-    const colorOverride = this.admin.getOverride('colorGame');
-    let winningIndex;
+    // Admin logic & First 2 games hooking logic
+    let forceWinChoice = null;
+    if (user && this.app.walletManager.getGamePlayCount(user.id, 'Color Game') <= 2) {
+      forceWinChoice = this.selectedColor;
+    }
+    const colorOverride = this.admin.getOverride('colorGame') || forceWinChoice;
     
+    let winningIndex;
     if (colorOverride) {
       winningIndex = this.colors.findIndex(c => c.name === colorOverride);
       if (winningIndex === -1) winningIndex = Math.floor(Math.random() * this.colors.length);
-      this.admin.clearOverride('colorGame');
+      if (this.admin.getOverride('colorGame')) this.admin.clearOverride('colorGame');
     } else {
       winningIndex = Math.floor(Math.random() * this.colors.length);
     }

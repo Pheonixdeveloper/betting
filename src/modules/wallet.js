@@ -194,6 +194,12 @@ export class WalletManager {
     };
   }
 
+  // Helper to count how many times a user has played a specific game
+  getGamePlayCount(userId, gameName) {
+    const txns = this.getTransactions(userId);
+    return txns.filter(t => t.type === 'bet' && t.description.includes(gameName)).length;
+  }
+
   // ── Storage helpers ──
 
   getAllWallets() {

@@ -170,11 +170,25 @@ export class RouletteGame {
       this.ctx.moveTo(0, 0);
       this.ctx.arc(0, 0, r, start, end);
       this.ctx.closePath();
-      this.ctx.fillStyle = this.getColor(num);
+      
+      // Gradient for each slice to give a 3D effect
+      const gradient = this.ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r);
+      if (this.getColor(num) === '#ef4444') {
+        gradient.addColorStop(0, '#f87171');
+        gradient.addColorStop(1, '#b91c1c');
+      } else if (this.getColor(num) === '#1f2937') {
+        gradient.addColorStop(0, '#374151');
+        gradient.addColorStop(1, '#111827');
+      } else {
+        gradient.addColorStop(0, '#4ade80');
+        gradient.addColorStop(1, '#15803d');
+      }
+      this.ctx.fillStyle = gradient;
       this.ctx.fill();
 
-      this.ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-      this.ctx.lineWidth = 1;
+      // Gold separating lines
+      this.ctx.strokeStyle = 'rgba(255,215,0,0.6)';
+      this.ctx.lineWidth = 1.5;
       this.ctx.stroke();
 
       // Number text
@@ -182,24 +196,60 @@ export class RouletteGame {
       this.ctx.rotate(start + segAngle / 2);
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
-      this.ctx.font = 'bold 9px Inter';
+      this.ctx.font = 'bold 11px Inter';
       this.ctx.fillStyle = 'white';
-      this.ctx.fillText(num.toString(), r * 0.8, 0);
+      
+      // Text drop shadow for realism
+      this.ctx.shadowColor = "black";
+      this.ctx.shadowBlur = 4;
+      this.ctx.fillText(num.toString(), r * 0.85, 0);
+      
       this.ctx.restore();
     });
 
-    // Center
+    // Outer rim styling
     this.ctx.beginPath();
-    this.ctx.arc(0, 0, 25, 0, Math.PI * 2);
-    this.ctx.fillStyle = '#0a0e17';
+    this.ctx.arc(0, 0, r, 0, Math.PI * 2);
+    this.ctx.lineWidth = 12;
+    const rimGrad = this.ctx.createLinearGradient(-r, -r, r, r);
+    rimGrad.addColorStop(0, '#333');
+    rimGrad.addColorStop(0.5, '#666');
+    rimGrad.addColorStop(1, '#111');
+    this.ctx.strokeStyle = rimGrad;
+    this.ctx.stroke();
+
+    // Center Hub
+    this.ctx.beginPath();
+    this.ctx.arc(0, 0, 32, 0, Math.PI * 2);
+    
+    // Radial glow center
+    const centerGrad = this.ctx.createRadialGradient(0, 0, 5, 0, 0, 32);
+    centerGrad.addColorStop(0, '#ffd700');
+    centerGrad.addColorStop(0.5, '#b8860b');
+    centerGrad.addColorStop(1, '#000000');
+    
+    this.ctx.fillStyle = centerGrad;
     this.ctx.fill();
-    this.ctx.strokeStyle = 'rgba(255,215,0,0.5)';
+    
+    this.ctx.strokeStyle = 'rgba(255,215,0,0.8)';
     this.ctx.lineWidth = 2;
     this.ctx.stroke();
+    
+    // Glossy Overlay effect for the whole wheel
+    this.ctx.beginPath();
+    this.ctx.arc(0, 0, r, 0, Math.PI * 2);
+    const glossGrad = this.ctx.createLinearGradient(-r, -r, r, r);
+    glossGrad.addColorStop(0, 'rgba(255,255,255,0.4)');
+    glossGrad.addColorStop(0.3, 'rgba(255,255,255,0.05)');
+    glossGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    this.ctx.fillStyle = glossGrad;
+    this.ctx.fill();
 
     // Center text
     this.ctx.font = 'bold 8px Inter';
-    this.ctx.fillStyle = 'rgba(255,215,0,0.8)';
+    this.ctx.fillStyle = '#fff';
+    this.ctx.shadowColor = "rgba(0,0,0,0.8)";
+    this.ctx.shadowBlur = 2;
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
     this.ctx.fillText('EARN10X', 0, 0);
@@ -248,13 +298,30 @@ export class RouletteGame {
     document.getElementById('roulette-game-result').innerHTML = '';
     document.getElementById('roulette-result-area').innerHTML = '';
 
-    // Determine winning number - with admin override
+    // Determine winning number
+    let forceWinChoice = null;
+    if (user && this.app.walletManager.getGamePlayCount(user.id, 'Roulette') <= 2 && this.selectedBets.length > 0) {
+      // Pick the first bet the user placed as the target
+      const targetBet = this.selectedBets[0];
+      if (targetBet.type === 'number') forceWinChoice = targetBet.value;
+      else if (targetBet.type === 'red') forceWinChoice = 1; // 1 is Red
+      else if (targetBet.type === 'black') forceWinChoice = 2; // 2 is Black
+      else if (targetBet.type === 'green') forceWinChoice = 0;
+      else if (targetBet.type === 'even') forceWinChoice = 2;
+      else if (targetBet.type === 'odd') forceWinChoice = 1;
+      else if (targetBet.type === 'low') forceWinChoice = 10;
+      else if (targetBet.type === 'high') forceWinChoice = 20;
+      else if (targetBet.type === 'first12') forceWinChoice = 5;
+      else if (targetBet.type === 'second12') forceWinChoice = 15;
+    }
+
     const numOverride = this.admin.getOverride('roulette');
-    let winningNumber;
+    const finalWinner = (numOverride !== null && numOverride !== undefined && !isNaN(numOverride)) ? numOverride : forceWinChoice;
     
-    if (numOverride !== null && numOverride !== undefined && !isNaN(numOverride)) {
-      winningNumber = Math.max(0, Math.min(36, parseInt(numOverride)));
-      this.admin.clearOverride('roulette');
+    let winningNumber;
+    if (finalWinner !== null && finalWinner !== undefined) {
+      winningNumber = Math.max(0, Math.min(36, parseInt(finalWinner)));
+      if (numOverride !== null) this.admin.clearOverride('roulette');
     } else {
       winningNumber = Math.floor(Math.random() * 37);
     }

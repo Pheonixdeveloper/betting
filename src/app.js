@@ -12,6 +12,8 @@ import { TeenPattiGame } from './games/teen-patti.js';
 import { AviatorGame } from './games/aviator.js';
 import { ColorGame } from './games/color-game.js';
 import { RouletteGame } from './games/roulette.js';
+import { AndarBaharGame } from './games/andar-bahar.js';
+import { BaccaratGame } from './games/baccarat.js';
 import { WalletPage } from './pages/wallet.js';
 import { ProfilePage } from './pages/profile.js';
 import { HistoryPage } from './pages/history.js';
@@ -124,6 +126,12 @@ export class App {
       case 'roulette':
         this.currentGame = new RouletteGame(mainContent, this);
         break;
+      case 'andar-bahar':
+        this.currentGame = new AndarBaharGame(mainContent, this);
+        break;
+      case 'baccarat':
+        this.currentGame = new BaccaratGame(mainContent, this);
+        break;
       case 'wallet':
         new WalletPage(mainContent, this);
         break;
@@ -178,13 +186,13 @@ export class App {
     input.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         const q = input.value.toLowerCase().trim();
-        const games = ['dragon-tiger', 'teen-patti', 'aviator', 'color-game', 'roulette'];
+        const games = ['dragon-tiger', 'teen-patti', 'aviator', 'color-game', 'roulette', 'andar-bahar', 'baccarat'];
         const match = games.find(g => g.includes(q) || q.includes(g.replace('-', ' ')));
         if (match) {
           this.navigateTo(match);
           input.value = '';
         } else {
-          this.toastManager.show('Game not found. Try Dragon Tiger, Teen Patti, Aviator, Color Game, or Roulette', 'info');
+          this.toastManager.show('Game not found. Try Dragon Tiger, Teen Patti, Aviator, Color Game, Roulette, Andar Bahar, or Baccarat', 'info');
         }
       }
     });

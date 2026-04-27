@@ -182,12 +182,23 @@ export class TeenPattiGame {
     cards.forEach((card, i) => {
       setTimeout(() => {
         cardEls[i].innerHTML = `
-          <span style="color: ${card.color}; font-weight: 700;">${card.value}</span>
-          <span class="tp-card-suit" style="color: ${card.color};">${card.suit}</span>
+          <div style="display:flex; flex-direction:column; justify-content:space-between; height:100%; padding:0.2rem;">
+            <div style="color: ${card.color}; font-weight: 800; font-family: 'Times New Roman', serif; font-size:1.2rem; line-height:1; text-align:left;">
+              ${card.value}
+            </div>
+            <div style="color: ${card.color}; font-size: 2.8rem; text-align: center; text-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+              ${card.suit}
+            </div>
+            <div style="color: ${card.color}; font-weight: 800; font-family: 'Times New Roman', serif; font-size:1.2rem; transform: rotate(180deg); line-height:1; text-align:left;">
+              ${card.value}
+            </div>
+          </div>
         `;
         cardEls[i].classList.add('revealed');
-        cardEls[i].style.background = 'linear-gradient(145deg, #1f2937, #111827)';
-        cardEls[i].style.borderColor = card.color === '#ef4444' ? '#ef4444' : 'rgba(255,255,255,0.2)';
+        cardEls[i].style.background = '#ffffff';
+        cardEls[i].style.color = '#000000';
+        cardEls[i].style.border = '1px solid #d1d5db';
+        cardEls[i].style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2)';
       }, i * 400);
     });
   }
@@ -234,10 +245,16 @@ export class TeenPattiGame {
     }
 
     // Draw hands - with admin override support
+    let forceWinChoice = null;
+    if (user && this.app.walletManager.getGamePlayCount(user.id, 'Teen Patti') <= 2) {
+      forceWinChoice = side;
+    }
     const override = this.admin.getOverride('teenPatti');
+    const finalWinner = override || forceWinChoice;
+    
     let handA, handB;
     
-    if (override) {
+    if (finalWinner) {
       // Redraw until desired winner emerges
       let attempts = 0;
       do {
@@ -248,9 +265,9 @@ export class TeenPattiGame {
         const rB = this.getHandRank(handB);
         const w = rA.score >= rB.score ? 'A' : 'B';
         attempts++;
-        if (w === override || attempts > 50) break;
+        if (w === finalWinner || attempts > 50) break;
       } while (true);
-      this.admin.clearOverride('teenPatti');
+      if (override) this.admin.clearOverride('teenPatti');
     } else {
       const usedCards = new Set();
       handA = this.drawHand(usedCards);

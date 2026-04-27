@@ -9,34 +9,7 @@ export class HomePage {
 
   render() {
     this.container.innerHTML = `
-      <!-- Hero Section -->
-      <section class="hero-section">
-        <div class="hero-bg-pattern"></div>
-        <div class="hero-particles" id="hero-particles"></div>
-        <div class="hero-content">
-          <div class="hero-badge"><i class="fas fa-crown"></i> Premium Gaming Platform</div>
-          <h1 class="hero-title">Play. Win. Withdraw Instantly.</h1>
-          <p class="hero-subtitle">Experience the thrill of Dragon Tiger, Teen Patti, Aviator, Color Game & Roulette. Real games, real wins, instant payouts.</p>
-          <div class="hero-buttons">
-            <button class="btn btn-game btn-lg" id="hero-play-now"><i class="fas fa-play"></i> Play Now</button>
-            <button class="btn btn-outline btn-lg" id="hero-signup"><i class="fas fa-gift"></i> Get ₹1,000 Bonus</button>
-          </div>
-        </div>
-        <div class="hero-stats">
-          <div class="hero-stat">
-            <div class="hero-stat-value">50K+</div>
-            <div class="hero-stat-label">Active Players</div>
-          </div>
-          <div class="hero-stat">
-            <div class="hero-stat-value">₹2Cr+</div>
-            <div class="hero-stat-label">Won Today</div>
-          </div>
-          <div class="hero-stat">
-            <div class="hero-stat-value">99.9%</div>
-            <div class="hero-stat-label">Uptime</div>
-          </div>
-        </div>
-      </section>
+
 
       <!-- Marquee -->
       <div class="marquee-bar">
@@ -56,29 +29,7 @@ export class HomePage {
         </div>
       </div>
 
-      <!-- Category Icons -->
-      <div class="category-icons">
-        <div class="category-icon" data-game="dragon-tiger">
-          <div class="category-icon-img">🐉</div>
-          <span>Dragon Tiger</span>
-        </div>
-        <div class="category-icon" data-game="teen-patti">
-          <div class="category-icon-img">🃏</div>
-          <span>Teen Patti</span>
-        </div>
-        <div class="category-icon" data-game="aviator">
-          <div class="category-icon-img">✈️</div>
-          <span>Aviator</span>
-        </div>
-        <div class="category-icon" data-game="color-game">
-          <div class="category-icon-img">🎨</div>
-          <span>Color Game</span>
-        </div>
-        <div class="category-icon" data-game="roulette">
-          <div class="category-icon-img">🎰</div>
-          <span>Roulette</span>
-        </div>
-      </div>
+
 
       <!-- Popular Games -->
       <div class="section-header">
@@ -89,27 +40,7 @@ export class HomePage {
         ${this.renderGameCards()}
       </div>
 
-      <!-- Promotions -->
-      <div class="section-header">
-        <h2 class="section-title"><i class="fas fa-gift"></i> Promotions</h2>
-      </div>
-      <div class="promo-grid">
-        <div class="promo-card promo-bonus">
-          <div class="promo-card-icon"><i class="fas fa-gift"></i></div>
-          <h3>Welcome Bonus</h3>
-          <p>Get ₹1,000 instantly on signup! Start playing your favorite games right away with free credits.</p>
-        </div>
-        <div class="promo-card promo-vip">
-          <div class="promo-card-icon"><i class="fas fa-crown"></i></div>
-          <h3>VIP Program</h3>
-          <p>Earn loyalty points on every bet. Unlock exclusive rewards, higher limits, and priority withdrawals.</p>
-        </div>
-        <div class="promo-card promo-cashback">
-          <div class="promo-card-icon"><i class="fas fa-undo"></i></div>
-          <h3>Daily Cashback</h3>
-          <p>Get 5% cashback on net losses every day. Your money works harder with our cashback guarantee.</p>
-        </div>
-      </div>
+
 
       <!-- Live Winners -->
       <div class="section-header">
@@ -142,7 +73,7 @@ export class HomePage {
       {
         id: 'dragon-tiger',
         title: 'Dragon Tiger',
-        provider: 'EARN10X Live',
+        provider: 'Global Live',
         players: Math.floor(Math.random() * 500) + 200,
         emoji: '🐉',
         gradient: 'linear-gradient(135deg, #dc2626 0%, #1e40af 100%)',
@@ -151,7 +82,7 @@ export class HomePage {
       {
         id: 'teen-patti',
         title: 'Teen Patti',
-        provider: 'EARN10X Cards',
+        provider: 'Global Cards',
         players: Math.floor(Math.random() * 400) + 150,
         emoji: '🃏',
         gradient: 'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)',
@@ -160,16 +91,16 @@ export class HomePage {
       {
         id: 'aviator',
         title: 'Aviator',
-        provider: 'EARN10X Crash',
+        provider: 'Global Crash',
         players: Math.floor(Math.random() * 800) + 400,
-        emoji: '✈️',
+        emoji: '<img src="/plane.png" style="height:4rem; filter:drop-shadow(0 4px 6px rgba(0,0,0,0.5));" />',
         gradient: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #dc2626 100%)',
         badge: 'POPULAR'
       },
       {
         id: 'color-game',
         title: 'Color Game',
-        provider: 'EARN10X Colors',
+        provider: 'Global Colors',
         players: Math.floor(Math.random() * 300) + 100,
         emoji: '🎨',
         gradient: 'linear-gradient(135deg, #22c55e 0%, #3b82f6 50%, #ef4444 100%)',
@@ -178,11 +109,29 @@ export class HomePage {
       {
         id: 'roulette',
         title: 'Roulette',
-        provider: 'EARN10X Table',
+        provider: 'Global Table',
         players: Math.floor(Math.random() * 350) + 200,
         emoji: '🎰',
         gradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
         badge: 'CLASSIC'
+      },
+      {
+        id: 'andar-bahar',
+        title: 'Andar Bahar',
+        provider: 'Global Live',
+        players: Math.floor(Math.random() * 1500) + 800,
+        emoji: '⭐',
+        gradient: 'linear-gradient(135deg, #1e3a8a 0%, #991b1b 100%)',
+        badge: 'HOT'
+      },
+      {
+        id: 'baccarat',
+        title: 'Baccarat',
+        provider: 'Global Table',
+        players: Math.floor(Math.random() * 800) + 300,
+        emoji: '🏦',
+        gradient: 'linear-gradient(135deg, #0f172a 0%, #3b82f6 100%)',
+        badge: 'PREMIUM'
       }
     ];
 
@@ -226,17 +175,7 @@ export class HomePage {
   }
 
   createParticles() {
-    const container = document.getElementById('hero-particles');
-    if (!container) return;
-    for (let i = 0; i < 20; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'hero-particle';
-      particle.style.left = Math.random() * 100 + '%';
-      particle.style.top = Math.random() * 100 + '%';
-      particle.style.animationDelay = Math.random() * 5 + 's';
-      particle.style.animationDuration = (5 + Math.random() * 5) + 's';
-      container.appendChild(particle);
-    }
+    // Particles removed for a cleaner minimal look
   }
 
   setupEvents() {
