@@ -6,6 +6,7 @@ import { UserManager } from './modules/user.js';
 import { WalletManager } from './modules/wallet.js';
 import { ToastManager } from './modules/toast.js';
 import { AdminController } from './modules/admin.js';
+import { GAME_THEMES } from './modules/game-themes.js';
 import { HomePage } from './pages/home.js';
 import { DragonTigerGame } from './games/dragon-tiger.js';
 import { TeenPattiGame } from './games/teen-patti.js';
@@ -38,6 +39,7 @@ export class App {
     this.setupAuth();
     this.setupSidebar();
     this.setupSearch();
+    this.setupWelcomePopup();
     this.updateAuthUI();
     this.navigateTo('home');
   }
@@ -49,6 +51,37 @@ export class App {
       loader.classList.add('hidden');
       setTimeout(() => loader.remove(), 500);
     }, 1800);
+  }
+
+  // Welcome Popup (one-time for first visitors)
+  setupWelcomePopup() {
+    if (localStorage.getItem('earn10x_welcomed')) return;
+    
+    const popup = document.getElementById('welcome-popup');
+    if (!popup) return;
+
+    // Show popup after loader finishes
+    setTimeout(() => {
+      popup.style.display = 'flex';
+    }, 2200);
+
+    // Close button
+    const closeBtn = document.getElementById('welcome-popup-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        popup.style.display = 'none';
+        localStorage.setItem('earn10x_welcomed', 'true');
+      });
+    }
+
+    // Close on overlay click
+    const overlay = popup.querySelector('.welcome-popup-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', () => {
+        popup.style.display = 'none';
+        localStorage.setItem('earn10x_welcomed', 'true');
+      });
+    }
   }
 
   // Clock
@@ -87,24 +120,26 @@ export class App {
     }
 
     this.currentPage = page;
+    // Resolve themed variant to base game
+    const theme = GAME_THEMES[page] || null;
+    const resolvedPage = theme ? theme.route : page;
+    this.activeTheme = theme;
 
     // Update nav pills
-    document.querySelectorAll('.nav-pill').forEach(pill => {
-      pill.classList.toggle('active', pill.dataset.page === page);
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.page === page || tab.dataset.page === resolvedPage);
     });
 
-    // Close sidebar
-    document.getElementById('sidebar').classList.remove('open');
+    // Close sidebar (if exists)
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.remove('open');
 
     // Render page
     const mainContent = document.getElementById('main-content');
     mainContent.innerHTML = '';
     mainContent.className = 'main-content fade-in';
 
-    // Games are visible to all users - auth check happens at bet placement
-    // const requiresAuth = ['dragon-tiger', 'teen-patti', 'aviator', 'color-game', 'roulette'];
-
-    switch(page) {
+    switch(resolvedPage) {
       case 'home':
         new HomePage(mainContent, this);
         break;
@@ -112,25 +147,25 @@ export class App {
         new CasinoPage(mainContent, this);
         break;
       case 'dragon-tiger':
-        this.currentGame = new DragonTigerGame(mainContent, this);
+        this.currentGame = new DragonTigerGame(mainContent, this, theme);
         break;
       case 'teen-patti':
-        this.currentGame = new TeenPattiGame(mainContent, this);
+        this.currentGame = new TeenPattiGame(mainContent, this, theme);
         break;
       case 'aviator':
         this.currentGame = new AviatorGame(mainContent, this);
         break;
       case 'color-game':
-        this.currentGame = new ColorGame(mainContent, this);
+        this.currentGame = new ColorGame(mainContent, this, theme);
         break;
       case 'roulette':
-        this.currentGame = new RouletteGame(mainContent, this);
+        this.currentGame = new RouletteGame(mainContent, this, theme);
         break;
       case 'andar-bahar':
-        this.currentGame = new AndarBaharGame(mainContent, this);
+        this.currentGame = new AndarBaharGame(mainContent, this, theme);
         break;
       case 'baccarat':
-        this.currentGame = new BaccaratGame(mainContent, this);
+        this.currentGame = new BaccaratGame(mainContent, this, theme);
         break;
       case 'wallet':
         new WalletPage(mainContent, this);
@@ -160,29 +195,39 @@ export class App {
   setupSidebar() {
     const toggle = document.getElementById('menu-toggle');
     const sidebar = document.getElementById('sidebar');
-    const close = document.getElementById('sidebar-close');
+    if (!toggle || !sidebar) return;
 
     toggle.addEventListener('click', () => {
       sidebar.classList.toggle('open');
     });
 
-    close.addEventListener('click', () => {
-      sidebar.classList.remove('open');
-    });
-
-    // Close on outside click
+    // Close on outside click (mobile)
     document.addEventListener('click', (e) => {
-      if (sidebar.classList.contains('open') &&
+      if (window.innerWidth <= 768 && sidebar.classList.contains('open') &&
           !sidebar.contains(e.target) &&
           !toggle.contains(e.target)) {
         sidebar.classList.remove('open');
       }
+    });
+
+    // Sidebar category toggle
+    document.querySelectorAll('.sidebar-category-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const targetId = header.dataset.toggle;
+        if (!targetId) return;
+        const list = document.getElementById(targetId);
+        if (list) {
+          list.classList.toggle('collapsed');
+          header.classList.toggle('collapsed');
+        }
+      });
     });
   }
 
   // Search
   setupSearch() {
     const input = document.getElementById('search-input');
+    if (!input) return;
     input.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         const q = input.value.toLowerCase().trim();
@@ -192,7 +237,7 @@ export class App {
           this.navigateTo(match);
           input.value = '';
         } else {
-          this.toastManager.show('Game not found. Try Dragon Tiger, Teen Patti, Aviator, Color Game, Roulette, Andar Bahar, or Baccarat', 'info');
+          this.toastManager.show('Game not found', 'info');
         }
       }
     });

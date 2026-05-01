@@ -3,10 +3,11 @@
 // Player A vs Player B - bet on which player gets the better hand.
 
 export class TeenPattiGame {
-  constructor(container, app) {
+  constructor(container, app, theme = null) {
     this.container = container;
     this.app = app;
     this.admin = app.adminController;
+    this.theme = theme;
     this.isPlaying = false;
     this.history = [];
     this.suits = ['♠', '♥', '♦', '♣'];
@@ -62,12 +63,21 @@ export class TeenPattiGame {
   }
 
   render() {
+    const t = this.theme || {};
+    const title = t.title || 'Teen Patti';
+    const subtitle = t.subtitle || 'Classic 3-card game • Bet on Player A or Player B • Best hand wins';
+    const headerImg = t.img || '/games/teen-patti.png';
+    const headerBg = t.headerBg || 'linear-gradient(135deg, #1a1a2e, #16213e)';
+    const accent = t.accentColor || 'var(--accent)';
+    const labelA = t.labelA || '🔵 Player A';
+    const labelB = t.labelB || '🔴 Player B';
+
     this.container.innerHTML = `
       <div class="game-page">
-        <div class="game-header">
-          <div class="game-header-icon">🃏</div>
-          <h1>Teen Patti</h1>
-          <p>Classic 3-card game • Bet on Player A or Player B • Best hand wins</p>
+        <div class="game-header" style="background: ${headerBg};">
+          <div class="game-header-icon"><img src="${headerImg}" alt="${title}" style="height:60px; border-radius:8px;" /></div>
+          <h1 style="background: linear-gradient(to right, #fff, ${accent}); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">${title}</h1>
+          <p>${subtitle}</p>
         </div>
 
         ${this.admin.renderGamePanel('teen-patti')}
@@ -87,7 +97,7 @@ export class TeenPattiGame {
 
             <div class="tp-hands">
               <div class="tp-hand">
-                <div class="tp-hand-label player-a">🔵 Player A</div>
+                <div class="tp-hand-label player-a">${labelA}</div>
                 <div class="tp-cards-row" id="player-a-cards">
                   <div class="tp-card"><div class="tp-card-back tp-card-back-a">A</div></div>
                   <div class="tp-card"><div class="tp-card-back tp-card-back-a">A</div></div>
@@ -99,7 +109,7 @@ export class TeenPattiGame {
               <div style="display: flex; align-items: center; font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--accent);">VS</div>
 
               <div class="tp-hand">
-                <div class="tp-hand-label player-b">🔴 Player B</div>
+                <div class="tp-hand-label player-b">${labelB}</div>
                 <div class="tp-cards-row" id="player-b-cards">
                   <div class="tp-card"><div class="tp-card-back tp-card-back-b">B</div></div>
                   <div class="tp-card"><div class="tp-card-back tp-card-back-b">B</div></div>

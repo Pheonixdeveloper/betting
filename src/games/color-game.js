@@ -1,8 +1,9 @@
 export class ColorGame {
-  constructor(container, app) {
+  constructor(container, app, theme = null) {
     this.container = container;
     this.app = app;
     this.admin = app.adminController;
+    this.theme = theme;
     this.isSpinning = false;
     this.selectedColor = null;
     this.history = [];
@@ -24,12 +25,19 @@ export class ColorGame {
   }
 
   render() {
+    const t = this.theme || {};
+    const title = t.title || 'Color Game';
+    const subtitle = t.subtitle || 'Pick a color • Spin the wheel • Win 6x your bet!';
+    const headerImg = t.img || '/games/color-game.png';
+    const headerBg = t.headerBg || 'linear-gradient(135deg, #1a1a2e, #16213e)';
+    const accent = t.accentColor || 'var(--accent)';
+
     this.container.innerHTML = `
       <div class="game-page">
-        <div class="game-header">
-          <div class="game-header-icon">🎨</div>
-          <h1>Color Game</h1>
-          <p>Pick a color • Spin the wheel • Win 6x your bet!</p>
+        <div class="game-header" style="background: ${headerBg};">
+          <div class="game-header-icon"><img src="${headerImg}" alt="${title}" style="height:60px; border-radius:8px;" /></div>
+          <h1 style="background: linear-gradient(to right, #fff, ${accent}); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">${title}</h1>
+          <p>${subtitle}</p>
         </div>
 
         ${this.admin.renderGamePanel('color-game')}

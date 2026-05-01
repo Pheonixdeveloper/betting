@@ -2,10 +2,11 @@
 // Simple predict game. Admin can override result to Andar or Bahar.
 
 export class AndarBaharGame {
-  constructor(container, app) {
+  constructor(container, app, theme = null) {
     this.container = container;
     this.app = app;
     this.admin = app.adminController;
+    this.theme = theme;
     this.isPlaying = false;
     this.history = [];
     this.timer = null;
@@ -14,12 +15,19 @@ export class AndarBaharGame {
   }
 
   render() {
+    const t = this.theme || {};
+    const title = t.title || 'Andar Bahar';
+    const subtitle = t.subtitle || 'Indian Classic • Bet on Andar or Bahar';
+    const headerImg = t.img || '/games/andar-bahar.png';
+    const headerBg = t.headerBg || 'linear-gradient(135deg, #1a1a2e, #16213e)';
+    const accent = t.accentColor || 'var(--accent)';
+
     this.container.innerHTML = `
       <div class="game-page">
-        <div class="game-header">
-          <div class="game-header-icon">🃏</div>
-          <h1>Andar Bahar</h1>
-          <p>Indian Classic • Bet on Andar or Bahar</p>
+        <div class="game-header" style="background: ${headerBg};">
+          <div class="game-header-icon"><img src="${headerImg}" alt="${title}" style="height:60px; border-radius:8px;" /></div>
+          <h1 style="background: linear-gradient(to right, #fff, ${accent}); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">${title}</h1>
+          <p>${subtitle}</p>
         </div>
 
         ${this.admin.renderGamePanel('andar-bahar')}

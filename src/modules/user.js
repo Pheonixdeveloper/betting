@@ -98,6 +98,27 @@ export class UserManager {
     return user;
   }
 
+  // Register a new user account (self-signup)
+  register(userData) {
+    const users = this.getAllUsers();
+    const user = {
+      id: Date.now().toString(),
+      username: userData.username,
+      name: userData.name,
+      phone: userData.phone,
+      email: userData.email || '',
+      password: userData.password,
+      mustResetPassword: false,
+      isAdmin: false,
+      createdAt: new Date().toISOString(),
+      avatar: userData.name.charAt(0).toUpperCase()
+    };
+    users.push(user);
+    localStorage.setItem(this.usersKey, JSON.stringify(users));
+    this.setCurrentUser(user);
+    return user;
+  }
+
   login(username, phone, password) {
     const users = this.getAllUsers();
     // Admin can login with just username + password (no phone required)

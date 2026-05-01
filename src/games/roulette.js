@@ -3,10 +3,11 @@
 // Bet types: Single number (35:1), Red/Black (1:1), Odd/Even (1:1), 1-18/19-36 (1:1)
 
 export class RouletteGame {
-  constructor(container, app) {
+  constructor(container, app, theme = null) {
     this.container = container;
     this.app = app;
     this.admin = app.adminController;
+    this.theme = theme;
     this.isSpinning = false;
     this.selectedBets = [];
     this.history = [];
@@ -36,12 +37,19 @@ export class RouletteGame {
   }
 
   render() {
+    const t = this.theme || {};
+    const title = t.title || 'Roulette';
+    const subtitle = t.subtitle || 'European Roulette • Single zero • Multiple bet types';
+    const headerImg = t.img || '/games/roulette.png';
+    const headerBg = t.headerBg || 'linear-gradient(135deg, #1a1a2e, #16213e)';
+    const accent = t.accentColor || 'var(--accent)';
+
     this.container.innerHTML = `
       <div class="game-page">
-        <div class="game-header">
-          <div class="game-header-icon">🎰</div>
-          <h1>Roulette</h1>
-          <p>European Roulette • Single zero • Multiple bet types</p>
+        <div class="game-header" style="background: ${headerBg};">
+          <div class="game-header-icon"><img src="${headerImg}" alt="${title}" style="height:60px; border-radius:8px;" /></div>
+          <h1 style="background: linear-gradient(to right, #fff, ${accent}); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">${title}</h1>
+          <p>${subtitle}</p>
         </div>
 
         ${this.admin.renderGamePanel('roulette')}

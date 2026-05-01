@@ -3,10 +3,11 @@
 // Dragon vs Tiger - higher card wins. Tie pays 8:1
 
 export class DragonTigerGame {
-  constructor(container, app) {
+  constructor(container, app, theme = null) {
     this.container = container;
     this.app = app;
     this.admin = app.adminController;
+    this.theme = theme;
     this.isPlaying = false;
     this.history = [];
     this.suits = ['♠', '♥', '♦', '♣'];
@@ -18,12 +19,21 @@ export class DragonTigerGame {
   }
 
   render() {
+    const t = this.theme || {};
+    const title = t.title || 'Dragon Tiger';
+    const subtitle = t.subtitle || 'Simple & fast card game • Dragon vs Tiger • Higher card wins';
+    const headerImg = t.img || '/games/dragon-tiger.png';
+    const headerBg = t.headerBg || 'linear-gradient(135deg, #1a1a2e, #16213e)';
+    const accent = t.accentColor || 'var(--accent)';
+    const dragonLabel = t.dragonLabel || '🐉 Dragon';
+    const tigerLabel = t.tigerLabel || '🐯 Tiger';
+
     this.container.innerHTML = `
       <div class="game-page">
-        <div class="game-header">
-          <div class="game-header-icon">🐉</div>
-          <h1>Dragon Tiger</h1>
-          <p>Simple & fast card game • Dragon vs Tiger • Higher card wins</p>
+        <div class="game-header" style="background: ${headerBg};">
+          <div class="game-header-icon"><img src="${headerImg}" alt="${title}" style="height:60px; border-radius:8px;" /></div>
+          <h1 style="background: linear-gradient(to right, #fff, ${accent}); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">${title}</h1>
+          <p>${subtitle}</p>
         </div>
 
         ${this.admin.renderGamePanel('dragon-tiger')}
@@ -41,14 +51,14 @@ export class DragonTigerGame {
             
             <div class="dt-cards">
               <div class="dt-card-container">
-                <div class="dt-card-label dragon">🐉 Dragon</div>
+                <div class="dt-card-label dragon">${dragonLabel}</div>
                 <div class="dt-card" id="dragon-card">
                   <div class="card-back"><i class="fas fa-dragon"></i></div>
                 </div>
               </div>
               <div class="dt-vs">VS</div>
               <div class="dt-card-container">
-                <div class="dt-card-label tiger">🐯 Tiger</div>
+                <div class="dt-card-label tiger">${tigerLabel}</div>
                 <div class="dt-card" id="tiger-card">
                   <div class="card-back"><i class="fas fa-paw"></i></div>
                 </div>
@@ -74,13 +84,13 @@ export class DragonTigerGame {
             </div>
             <div class="bet-options">
               <button class="bet-option-btn dt-bet-dragon" id="dt-bet-dragon" ${this.isPlaying ? 'disabled' : ''}>
-                🐉 Dragon (1:1)
+                ${dragonLabel} (1:1)
               </button>
               <button class="bet-option-btn dt-bet-tie" id="dt-bet-tie" ${this.isPlaying ? 'disabled' : ''}>
                 🤝 Tie (8:1)
               </button>
               <button class="bet-option-btn dt-bet-tiger" id="dt-bet-tiger" ${this.isPlaying ? 'disabled' : ''}>
-                🐯 Tiger (1:1)
+                ${tigerLabel} (1:1)
               </button>
             </div>
           </div>
