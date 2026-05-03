@@ -20,7 +20,7 @@ import { ProfilePage } from './pages/profile.js';
 import { HistoryPage } from './pages/history.js';
 import { CasinoPage } from './pages/casino.js';
 import { AdminDashboardPage } from './pages/admin-dashboard.js';
-import { SportsGame } from './games/sports.js';
+
 
 export class App {
   constructor() {
@@ -165,9 +165,7 @@ export class App {
       case 'andar-bahar':
         this.currentGame = new AndarBaharGame(mainContent, this, theme);
         break;
-      case 'sports':
-        this.currentGame = new SportsGame(mainContent, this);
-        break;
+
       case 'baccarat':
         this.currentGame = new BaccaratGame(mainContent, this, theme);
         break;
