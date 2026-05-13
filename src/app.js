@@ -1,5 +1,5 @@
 // ========================================
-// EARN10X - Main Application Controller
+// ALLLPANELLL - Main Application Controller
 // ========================================
 
 import { UserManager } from './modules/user.js';
@@ -538,7 +538,7 @@ export class App {
       document.getElementById('deposit-success').style.display = '';
       document.getElementById('deposit-credited-amount').textContent = `₹${this.depositAmount.toLocaleString()}`;
       
-      const txnId = 'EARN10X-' + Date.now().toString().slice(-8);
+      const txnId = 'ALLLPANELLL-' + Date.now().toString().slice(-8);
       document.getElementById('deposit-txn-id').textContent = `TXN: ${txnId}`;
 
       this.toastManager.show(`₹${this.depositAmount.toLocaleString()} deposited successfully!`, 'success');
@@ -837,7 +837,7 @@ export class App {
 
       this.closeModal('reset-modal');
       this.updateAuthUI();
-      this.toastManager.show('Password updated! Welcome to EARN10X.', 'success');
+      this.toastManager.show('Password updated! Welcome to ALLLPANELLL.', 'success');
       this.navigateTo(this.currentPage);
     });
 

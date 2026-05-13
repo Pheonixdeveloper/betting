@@ -121,12 +121,23 @@ export class UserManager {
 
   login(username, phone, password) {
     const users = this.getAllUsers();
-    // Admin can login with just username + password (no phone required)
     const user = users.find(u => {
+      // Admin: match by username + password only (no phone required)
       if (u.isAdmin && u.username === username && u.password === password) {
         return true;
       }
-      return u.username === username && u.phone === phone && u.password === password;
+      // Regular users: if phone is provided, require username + phone + password
+      // If phone is left blank, allow login with just username + password
+      if (!u.isAdmin && u.username === username && u.password === password) {
+        if (!phone || phone.trim() === '') {
+          return true; // Phone left blank — match by username + password
+        }
+        // Phone provided — must match exactly (strip spaces for comparison)
+        const normalizedInput = phone.trim().replace(/\s+/g, '');
+        const normalizedStored = (u.phone || '').trim().replace(/\s+/g, '');
+        return normalizedInput === normalizedStored;
+      }
+      return false;
     });
     if (user) {
       this.setCurrentUser(user);

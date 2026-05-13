@@ -217,10 +217,23 @@ export class AdminDashboardPage {
                 <input type="text" id="adm-new-username" placeholder="Choose a username" required style="margin-bottom: 1rem;" />
                 
                 <label>Phone Number</label>
-                <input type="tel" id="adm-new-phone" placeholder="Enter phone number" required style="margin-bottom: 1rem;" />
+                <input type="tel" id="adm-new-phone" placeholder="Enter phone number" style="margin-bottom: 1rem;" />
 
                 <label>Temporary Password</label>
                 <input type="text" id="adm-new-password" placeholder="e.g. Pass123" required style="margin-bottom: 1rem;" />
+
+                <label style="display:flex; align-items:center; gap:6px;">
+                  <i class="fas fa-coins" style="color: #22c55e;"></i>
+                  Initial Points (₹) <span style="font-weight:400; color: var(--text-muted); font-size:0.75rem;">(optional)</span>
+                </label>
+                <div class="adm-credit-quick" style="margin-bottom: 0.5rem;">
+                  <button type="button" class="adm-quick-amt" data-init-amt="100">₹100</button>
+                  <button type="button" class="adm-quick-amt" data-init-amt="500">₹500</button>
+                  <button type="button" class="adm-quick-amt" data-init-amt="1000">₹1K</button>
+                  <button type="button" class="adm-quick-amt" data-init-amt="5000">₹5K</button>
+                  <button type="button" class="adm-quick-amt" data-init-amt="10000">₹10K</button>
+                </div>
+                <input type="number" id="adm-new-initial-balance" placeholder="Enter initial points (leave blank for 0)" min="0" style="margin-bottom: 1rem;" />
 
                 <div style="font-size: 0.8rem; color: var(--warning); margin-bottom: 1rem;">
                   <i class="fas fa-info-circle"></i> User will be forced to set a new password upon first login.
@@ -435,12 +448,20 @@ export class AdminDashboardPage {
     document.getElementById('adm-create-close')?.addEventListener('click', () => this.closeCreateModal());
     document.getElementById('adm-create-overlay')?.addEventListener('click', () => this.closeCreateModal());
 
+    // Quick amount buttons for initial balance
+    this.container.querySelectorAll('.adm-quick-amt[data-init-amt]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('adm-new-initial-balance').value = btn.dataset.initAmt;
+      });
+    });
+
     document.getElementById('adm-create-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const username = document.getElementById('adm-new-username').value;
-      const name = document.getElementById('adm-new-name').value;
-      const phone = document.getElementById('adm-new-phone').value;
+      const username = document.getElementById('adm-new-username').value.trim();
+      const name = document.getElementById('adm-new-name').value.trim();
+      const phone = document.getElementById('adm-new-phone').value.trim();
       const password = document.getElementById('adm-new-password').value;
+      const initialBalance = parseFloat(document.getElementById('adm-new-initial-balance').value) || 0;
 
       // Check if username exists
       const existingUsers = this.app.userManager.getAllUsers();
@@ -449,8 +470,16 @@ export class AdminDashboardPage {
         return;
       }
 
-      this.app.userManager.adminCreateUser({ username, name, phone, password });
-      this.app.toastManager.show(`Account created for ${name}!`, 'success');
+      const newUser = this.app.userManager.adminCreateUser({ username, name, phone, password });
+
+      // Credit initial balance if provided
+      if (initialBalance > 0) {
+        this.app.walletManager.adminCredit(initialBalance, newUser.id, 'Initial balance by Admin');
+        this.app.toastManager.show(`Account created for ${name} with ₹${initialBalance.toLocaleString()} initial balance!`, 'success');
+      } else {
+        this.app.toastManager.show(`Account created for ${name}!`, 'success');
+      }
+
       this.closeCreateModal();
       this.refreshTable();
     });
